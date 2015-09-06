@@ -29,7 +29,7 @@ var socketgd = new SocketGD(socket);
 
 // use socketgd instead of the socket
 socketgd.on('connect', function() {
-  console.log('I'm connected!');
+  console.log("I'm connected!");
 });
 
 socketgd.send('I am sending you a message');
