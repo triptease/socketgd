@@ -1,0 +1,38 @@
+{
+  "name": "socketgd",
+  "version": "1.0.0",
+  "description": "Guaranteed delivery for socket.io",
+  "author": "Capriza Inc. <backend@capriza.com>",
+  "maintainers": [
+    "Nadav Fischer <nadav.fischer@capriza.com>",
+    "Yuval Carmel <yuval.carmel@capriza.com>"
+  ],
+  "homepage": "http://github.com/capriza/socketgd",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/capriza/socketgd.git"
+  },
+  "bugs": {
+    "url": "https://github.com/capriza/socketgd/issues"
+  },
+  "keywords": [
+    "gd",
+    "socket.io",
+    "guaranteed",
+    "reliable",
+    "delivery"
+  ],
+  "devDependencies": {
+    "should": "4.0.4",
+    "mocha": "1.21.4"
+  },
+  "browser": "./socketgd.js",
+  "engines": {
+    "node": ">=0.10.3"
+  },
+  "main": "socketgd.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "mocha test"
+  }
+}
