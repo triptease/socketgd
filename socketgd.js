@@ -44,9 +44,6 @@
     this._socket = socket;
 
     if (this._socket) {
-      this._socket.on('close', this._onDisconnectCB);
-      this._socket.on('disconnect', this._onDisconnectCB);
-      this._socket.on('reconnect_failed', this._onDisconnectCB);
       this._socket.on('socketgd_ack', this._onAckCB);
 
       this.sendPending();
@@ -88,9 +85,6 @@
       return;
     }
 
-    this._socket.removeListener('close', this._onDisconnectCB);
-    this._socket.removeListener('disconnect', this._onDisconnectCB);
-    this._socket.removeListener('reconnect_failed', this._onDisconnectCB);
     this._socket.removeListener('socketgd_ack', this._onAckCB);
   };
 
