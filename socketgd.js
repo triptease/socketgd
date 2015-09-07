@@ -12,7 +12,6 @@
     this._events = {};
     this._id = 0;
     this._enabled = true;
-    this._onDisconnectCB = SocketGD.prototype._onDisconnect.bind(this);
     this._onAckCB = SocketGD.prototype._onAck.bind(this);
     this.setLastAcked(lastAcked);
     this.setSocket(socket);
@@ -86,14 +85,6 @@
     }
 
     this._socket.removeListener('socketgd_ack', this._onAckCB);
-  };
-
-  /**
-   * invoked when the socket gets disconnected
-   * @private
-   */
-  SocketGD.prototype._onDisconnect = function() {
-    this._cleanup();
   };
 
   /**
@@ -180,6 +171,8 @@
    */
   SocketGD.prototype.disconnect = function() {
     this._socket && this._socket.disconnect();
+    this._cleanup();
+    this._socket = null;
   };
 
   /**
@@ -187,6 +180,8 @@
    */
   SocketGD.prototype.disconnectSync = function() {
     this._socket && this._socket.disconnectSync();
+    this._cleanup();
+    this._socket = null;
   };
 
   /**
@@ -194,6 +189,8 @@
    */
   SocketGD.prototype.close = function() {
     this._socket && this._socket.close();
+    this._cleanup();
+    this._socket = null;
   };
 
   /**
