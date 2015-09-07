@@ -49,15 +49,14 @@
       this._socket.on('reconnect_failed', this._onDisconnectCB);
       this._socket.on('socketgd_ack', this._onAckCB);
 
-      this._sendPending();
+      this.sendPending();
     }
   };
 
   /**
    * send all pending messages that have not received an ack
-   * @private
    */
-  SocketGD.prototype._sendPending = function() {
+  SocketGD.prototype.sendPending = function() {
     var _this = this;
     // send all pending messages that haven't been acked yet
     this._pending.forEach(function(message) {
