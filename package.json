@@ -1,6 +1,6 @@
 {
   "name": "socketgd",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Guaranteed delivery for socket.io",
   "author": "Capriza Inc. <backend@capriza.com>",
   "maintainers": [
