@@ -132,16 +132,24 @@
       return;
     }
 
-    var data;
-    switch (message.type) {
-      case 'send':
-        data = message.gd ? 'socketgd:'+message.id+':'+message.msg : message.msg;
-        this._socket.send(data);
-        break;
-      case 'emit':
-        data = message.gd ? {socketgd: message.id, msg: message.msg} : message.msg;
-        this._socket.emit(message.event, data);
-        break;
+    if (this._enabled) {
+      switch (message.type) {
+        case 'send':
+          this._socket.send('socketgd:' + message.id + ':' + message.msg);
+          break;
+        case 'emit':
+          this._socket.emit(message.event, {socketgd: message.id, msg: message.msg});
+          break;
+      }
+    } else {
+      switch (message.type) {
+        case 'send':
+          this._socket.send(message.msg);
+          break;
+        case 'emit':
+          this._socket.emit(message.event, message.msg, message.ack);
+          break;
+      }
     }
   };
 
@@ -228,7 +236,7 @@
           var message = data.substring(index + 1);
           // the callback must call the 'ack' function so we can send an ack for the message
           cb && cb(message, function(ackData) {
-           return _this._sendAck(id, ackData);
+            return _this._sendAck(id, ackData);
           }, id);
         } else if (data && typeof data === 'object' && data.socketgd !== undefined) {
           if (data.socketgd <= _this._lastAcked) {
