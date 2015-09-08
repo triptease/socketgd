@@ -44,7 +44,7 @@
     this._socket = socket;
 
     if (this._socket) {
-      this._socket.on('reconnect', this._onAckCB);
+      this._socket.on('reconnect', this._onReconnectCB);
       this._socket.on('socketgd_ack', this._onAckCB);
 
       this.sendPending();
