@@ -228,13 +228,13 @@
         if (data && event === 'message') {
           // parse the message
           if (data.indexOf('socketgd:') !== 0) {
-            cb(data);
+            cb(data, ack);
             return;
           }
           // get the id (skipping the socketgd prefix)
           var index = data.indexOf(':', 9);
           if (index === -1) {
-            cb(data);
+            cb(data, ack);
             return;
           }
 
