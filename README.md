@@ -8,17 +8,6 @@ socketgd is a wrapper around socket.io sockets that provides reliable message de
 over the socket, and waits for `ack`s to be received from the other end indicating that the messages
 were handled successfully.
 
-socketgd does not interfere with the normal operation of socket.io during auto reconnection. If the socket is created
-with auto reconnect (which is the default) then socket.io automatically handles message buffering during the
-unconnected periods and socketgd provides no additional features.
-
-socketgd is useful in case of complete disconnection and reconnection failures.
-If a socket gets disconnected then the application can provide a new socket to the same socketgd wrapper.
-
-When that happens:
-* In the client, all messages that have not received an ack from the server will be sent again over the new socket.
-* In the server, if messages arrive that it has already acked, they will silently be discarded.
-
 ## Client Usage
 
 ```javascript
@@ -77,8 +66,23 @@ io.on('connection', function(socket) {
 
 });
 ```
+## Reconnection
 
-## Server Side Considerations
+If the underlying socket is configured for auto reconnect then socketgd will automatically send all un-acked messages
+to the server whenever the `reconnect` event is fired.
+
+When the server receives messages it has already acked, they will silently be discarded.
+
+## Disconnection
+
+If the underlying socket gets completely disconnected either because reconnect is turned off or socket.io gave up on
+reconnection attempts, then the application may create a new socket.io socket and provide it to the same socketgd
+instance to continue communication from the point it terminated.
+
+Providing a new socket to a sockgetd instance initiates the same behavior as the `reconnect` event.
+See [Reconnection](#reconnection)
+
+#### Server Side Considerations
 
 When a client creates a new socket connection to replace a disconnected one, it's likely that the new socket will
 end up connecting to a different server instance than the one the client was previously connected to.
@@ -86,9 +90,8 @@ In such cases, a new socketgd wrapper needs to be created in the server, and the
 needs to be set in it.
 
 socketgd's constructor (as well as the method `setLastAcked`) enables setting the last acked message id, so if any
-messages arrive multiple times they can be discarded.
-
-It's up to the application to share the last ack id between server instances (such as through redis).
+messages arrive multiple times they can be discarded. It's up to the application to share the last ack id
+between server instances, such as through redis.
 
 ## License
 

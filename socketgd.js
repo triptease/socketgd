@@ -13,6 +13,7 @@
     this._id = 0;
     this._enabled = true;
     this._onAckCB = SocketGD.prototype._onAck.bind(this);
+    this._onReconnectCB = SocketGD.prototype._onReconnect.bind(this);
     this.setLastAcked(lastAcked);
     this.setSocket(socket);
   }
@@ -43,6 +44,7 @@
     this._socket = socket;
 
     if (this._socket) {
+      this._socket.on('reconnect', this._onAckCB);
       this._socket.on('socketgd_ack', this._onAckCB);
 
       this.sendPending();
@@ -84,6 +86,7 @@
       return;
     }
 
+    this._socket.removeListener('reconnect', this._onReconnectCB);
     this._socket.removeListener('socketgd_ack', this._onAckCB);
   };
 
@@ -100,6 +103,14 @@
       }
       this._pending.shift();
     }
+  };
+
+  /**
+   * invoked when an a reconnect event occurs on the underlying socket
+   * @private
+   */
+  SocketGD.prototype._onReconnect = function() {
+    this.sendPending();
   };
 
   /**
