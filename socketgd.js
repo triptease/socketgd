@@ -155,7 +155,7 @@
     } else {
       switch (message.type) {
         case 'send':
-          this._socket.send(message.msg);
+          this._socket.send(message.msg, message.ack);
           break;
         case 'emit':
           this._socket.emit(message.event, message.msg, message.ack);
