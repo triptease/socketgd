@@ -63,6 +63,13 @@
   };
 
   /**
+   * clear out any pending messages
+   */
+  SocketGD.prototype.clearPending = function() {
+    this._pending = [];
+  };
+
+  /**
    * enable or disable sending message with gd. if disabled, then messages will be sent without guaranteeing delivery
    * in case of socket disconnection/reconnection.
    */
