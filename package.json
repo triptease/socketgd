@@ -1,6 +1,6 @@
 {
   "name": "socketgd",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Guaranteed delivery for socket.io",
   "author": "Capriza Inc. <backend@capriza.com>",
   "maintainers": [
@@ -24,15 +24,14 @@
   ],
   "devDependencies": {
     "should": "4.0.4",
-    "mocha": "1.21.4"
+    "mocha": "1.21.4",
+    "socket.io": "1.1.0",
+    "socket.io-client": "1.1.0"
   },
   "browser": "./socketgd.js",
-  "engines": {
-    "node": ">=0.10.3"
-  },
   "main": "socketgd.js",
   "license": "MIT",
   "scripts": {
-    "test": "mocha test"
+    "test": "mocha test.js"
   }
 }

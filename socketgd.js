@@ -195,8 +195,8 @@
   /**
    * disconnect the socket
    */
-  SocketGD.prototype.disconnect = function() {
-    this._socket && this._socket.disconnect();
+  SocketGD.prototype.disconnect = function(close) {
+    this._socket && this._socket.disconnect(close);
     this._cleanup();
     this._socket = null;
   };
@@ -214,7 +214,7 @@
    * close the socket
    */
   SocketGD.prototype.close = function() {
-    this._socket && this._socket.close();
+    this._socket && this._socket.disconnect(true);
     this._cleanup();
     this._socket = null;
   };
