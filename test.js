@@ -88,13 +88,15 @@ describe('Socket GD', function() {
     ioserver.of('/2').on('connection', function(socket) {
       ssgd.setSocket(socket);
       ssgd.on('message', function(message, ack) {
-        ack();
         ++sevents;
-        ssgd.send(message);
-        if (sevents === 1) {
-          // terminate the socket after the first message
+        if (sevents === 2) {
+          // terminate the socket after the second message
+          // and don't ack it so it should be received again when the connection is up again
           ssgd.disconnect(true);
+          return;
         }
+        ssgd.send(message);
+        ack();
       });
     });
 
@@ -112,8 +114,9 @@ describe('Socket GD', function() {
     });
     csgd.on('message', function(message, ack, msgId) {
       ++cevents;
+      ack();
       if (msgId === 2) {
-        sevents.should.be.exactly(3);
+        sevents.should.be.exactly(4); // the server should receive the second message twice
         cevents.should.be.exactly(3);
         done();
       }
