@@ -23,7 +23,7 @@
    * @param lastAcked
    */
   SocketGD.prototype.setLastAcked = function(lastAcked) {
-    this._lastAcked = lastAcked || -1;
+    this._lastAcked = lastAcked >= 0 ? lastAcked : -1;
   };
 
   /**
