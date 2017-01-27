@@ -232,31 +232,7 @@
     var cbData = {
       cb: cb,
       wrapped: function(data, ack) {
-        if (data && event === 'message') {
-          // parse the message
-          if (data.indexOf('socketgd:') !== 0) {
-            cb(data, ack);
-            return;
-          }
-          // get the id (skipping the socketgd prefix)
-          var index = data.indexOf(':', 9);
-          if (index === -1) {
-            cb(data, ack);
-            return;
-          }
-
-          var id = parseInt(data.substring(9, index));
-          if (id <= _this._lastAcked) {
-            // discard the message since it was already handled and acked
-            return;
-          }
-
-          var message = data.substring(index + 1);
-          // the callback must call the 'ack' function so we can send an ack for the message
-          cb && cb(message, function(ackData) {
-            return _this._sendAck(id, ackData);
-          }, id);
-        } else if (data && typeof data === 'object' && data.socketgd !== undefined) {
+        if (data && typeof data === 'object' && data.socketgd !== undefined) {
           if (data.socketgd <= _this._lastAcked) {
             // discard the message since it was already handled and acked
             return;
