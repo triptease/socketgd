@@ -1,3 +1,5 @@
+var uuid = require('uuid/v4');
+
 (function(exporter) {
 
   /**
@@ -7,31 +9,16 @@
    * calling 'setSocket' causes all messages that have not received an ack to be sent again.
    * @constructor
    */
-  function SocketGD(socket, lastAcked) {
-    this._pending = [];
+  function SocketGD(socket, options) {
+    this._pending = {};
     this._events = {};
-    this._id = 0;
     this._enabled = true;
     this._onAckCB = SocketGD.prototype._onAck.bind(this);
     this._onReconnectCB = SocketGD.prototype._onReconnect.bind(this);
-    this.setLastAcked(lastAcked);
+    this._autoAck = options && options.autoAck || false;
     this.setSocket(socket);
+    this._ackMap = {};
   }
-
-  /**
-   * set the last message id that an ack was sent for
-   * @param lastAcked
-   */
-  SocketGD.prototype.setLastAcked = function(lastAcked) {
-    this._lastAcked = lastAcked >= 0 ? lastAcked : -1;
-  };
-
-  /**
-   * get the last acked message id
-   */
-  SocketGD.prototype.lastAcked = function() {
-    return this._lastAcked;
-  };
 
   /**
    * replace the underlying socket.io socket with a new socket. useful in case of a socket getting
@@ -55,18 +42,19 @@
    * send all pending messages that have not received an ack
    */
   SocketGD.prototype.sendPending = function() {
-    var _this = this;
     // send all pending messages that haven't been acked yet
-    this._pending.forEach(function(message) {
-      _this._sendOnSocket(message);
-    });
+    let msgId;
+    for (msgId in this._pending) {
+      let message = this._pending[msgId];
+      this._sendOnSocket(message);
+    }
   };
 
   /**
    * clear out any pending messages
    */
   SocketGD.prototype.clearPending = function() {
-    this._pending = [];
+    this._pending = {};
   };
 
   /**
@@ -103,12 +91,12 @@
    * @private
    */
   SocketGD.prototype._onAck = function(ack) {
-    // got an ack for a message, remove all messages pending an ack up to (and including) the acked message.
-    while (this._pending.length > 0 && this._pending[0].id <= ack.id) {
-      if (this._pending[0].id === ack.id && this._pending[0].ack) {
-        this._pending[0].ack.call(null, ack.data);
+    if (ack.id in this._pending) {
+      const pending = this._pending[ack.id];
+      delete this._pending[ack.id];
+      if (pending.ack) {
+        pending.ack.call(null, ack.data);
       }
-      this._pending.shift();
     }
   };
 
@@ -129,9 +117,9 @@
       return;
     }
 
-    this._lastAcked = id;
+    this._ackMap[id] = true;
     this._socket.emit('socketgd_ack', {id: id, data: data});
-    return this._lastAcked;
+    return id;
   };
 
   /**
@@ -141,9 +129,9 @@
    */
   SocketGD.prototype._sendOnSocket = function(message) {
     if (this._enabled && message.id === undefined) {
-      message.id = this._id++;
+      message.id = uuid();
       message.gd = true;
-      this._pending.push(message);
+      this._pending[message.id] = message;
     }
 
     if (!this._socket) {
@@ -151,34 +139,10 @@
     }
 
     if (this._enabled) {
-      switch (message.type) {
-        case 'send':
-          this._socket.send('socketgd:' + message.id + ':' + message.msg);
-          break;
-        case 'emit':
-          this._socket.emit(message.event, {socketgd: message.id, msg: message.msg});
-          break;
-      }
+      this._socket.emit(message.event, {socketgd: message.id, msg: message.msg});
     } else {
-      switch (message.type) {
-        case 'send':
-          this._socket.send(message.msg, message.ack);
-          break;
-        case 'emit':
-          this._socket.emit(message.event, message.msg, message.ack);
-          break;
-      }
+      this._socket.emit(message.event, message.msg, message.ack);
     }
-  };
-
-  /**
-   * send a message with gd. this means that if an ack is not received and a new connection is established (by
-   * calling setSocket), the message will be sent again.
-   * @param message
-   * @param ack
-   */
-  SocketGD.prototype.send = function(message, ack) {
-    this._sendOnSocket({type: 'send', msg: message, ack: ack});
   };
 
   /**
@@ -189,7 +153,7 @@
    * @param ack
    */
   SocketGD.prototype.emit = function(event, message, ack) {
-    this._sendOnSocket({type: 'emit', event: event, msg: message, ack: ack});
+    this._sendOnSocket({event: event, msg: message, ack: ack});
   };
 
   /**
@@ -233,13 +197,15 @@
       cb: cb,
       wrapped: function(data, ack) {
         if (data && typeof data === 'object' && data.socketgd !== undefined) {
-          if (data.socketgd <= _this._lastAcked) {
+          if (data.socketgd in _this._ackMap) {
             // discard the message since it was already handled and acked
             return;
           }
-          cb && cb(data.msg, function(ackData) {
+          var sendAck = function(ackData) {
             return _this._sendAck(data.socketgd, ackData);
-          }, data.socketgd);
+          };
+          cb && cb(data.msg, sendAck, data.socketgd);
+          if (_this._autoAck) sendAck();
         } else {
           cb(data, ack);
         }

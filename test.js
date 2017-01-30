@@ -38,16 +38,11 @@ describe('Socket GD', function() {
     var ssgd = new SocketGD();
     ioserver.of('/1').on('connection', function(socket) {
       ssgd.setSocket(socket);
-      ssgd.on('message', function(message) {
-        ++events;
-        message.should.be.exactly('hello server');
-      });
       ssgd.on('event1', function(event) {
         ++events;
         event.hello.should.be.exactly('world');
         event.number.should.be.exactly(1);
         event.boolean.should.be.exactly(true);
-        ssgd.send('hello client');
         ssgd.emit('event1', {hello: 'world', number: 1, boolean: true});
         ssgd.emit('event2', {hello2: 'world2'});
       });
@@ -59,13 +54,8 @@ describe('Socket GD', function() {
 
     var csgd = new SocketGD(ioc('http://localhost:'+port+'/1', {transports: ['websocket'], forceNew: true}));
     csgd.on('connect', function() {
-      csgd.send('hello server');
       csgd.emit('event1', {hello: 'world', number: 1, boolean: true});
       csgd.emit('event2', {hello2: 'world2'});
-    });
-    csgd.on('message', function(message) {
-      ++events;
-      message.should.be.exactly('hello client');
     });
     csgd.on('event1', function(event) {
       ++events;
@@ -76,7 +66,7 @@ describe('Socket GD', function() {
     csgd.on('event2', function(event) {
       ++events;
       event.hello2.should.be.exactly('world2');
-      events.should.be.exactly(6);
+      events.should.be.exactly(4);
       done();
     });
   });
@@ -95,7 +85,7 @@ describe('Socket GD', function() {
           ssgd.disconnect(true);
           return;
         }
-        ssgd.send(message);
+        ssgd.emit('message', message);
         ack();
       });
     });
@@ -103,9 +93,9 @@ describe('Socket GD', function() {
     var csgd = new SocketGD(ioc('http://localhost:'+port+'/2', {transports: ['websocket'], forceNew: true}));
 
     var sendMessages = function() {
-      csgd.send('hello server 1');
-      csgd.send('hello server 2');
-      csgd.send('hello server 3');
+      csgd.emit('message', 'hello server 1');
+      csgd.emit('message', 'hello server 2');
+      csgd.emit('message', 'hello server 3');
       sendMessages = null;
     };
 
@@ -115,7 +105,7 @@ describe('Socket GD', function() {
     csgd.on('message', function(message, ack, msgId) {
       ++cevents;
       ack();
-      if (msgId === 2) {
+      if (cevents === 3) {
         sevents.should.be.exactly(4); // the server should receive the second message twice
         cevents.should.be.exactly(3);
         done();
