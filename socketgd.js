@@ -43,9 +43,9 @@ var uuid = require('uuid/v4');
    */
   SocketGD.prototype.sendPending = function() {
     // send all pending messages that haven't been acked yet
-    let msgId;
+    var msgId;
     for (msgId in this._pending) {
-      let message = this._pending[msgId];
+      var message = this._pending[msgId];
       this._sendOnSocket(message);
     }
   };
@@ -92,7 +92,7 @@ var uuid = require('uuid/v4');
    */
   SocketGD.prototype._onAck = function(ack) {
     if (ack.id in this._pending) {
-      const pending = this._pending[ack.id];
+      var pending = this._pending[ack.id];
       delete this._pending[ack.id];
       if (pending.ack) {
         pending.ack.call(null, ack.data);
